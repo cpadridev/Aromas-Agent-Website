@@ -1,0 +1,132 @@
+---
+import Layout from '@/layouts/Layout.astro'
+import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-rounded'
+---
+
+<Layout>
+  <div class='w-[90%] my-5 mx-auto flex space-x-10'>
+    <button id='backButton'>
+      <MaterialSymbolsArrowBackRounded class:list={'text-[28px]'} />
+    </button>
+    <h2 id='saleName' class='text-5xl m-auto'></h2>
+  </div>
+  <table id='saleLines' class='my-5 mx-auto sale-order-lines sortable'>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Description</th>
+        <th>Quantity</th>
+        <th>Stock</th>
+        <th>Quantity Delivered</th>
+        <th>Delivery Note</th>
+        <th>Scheduled Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <link
+    href='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css'
+    rel='stylesheet'
+  />
+  <script
+    src='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js'
+  ></script>
+</Layout>
+
+<style>
+  .sale-order-lines th {
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    font-weight: bold;
+    cursor: default;
+    padding: 20px;
+    border: 1px solid #ddd;
+  }
+</style>
+
+<script>
+  document.querySelector('#backButton').addEventListener('click', () => {
+    window.location.href = '/sales/'
+  })
+
+  const fields = [
+    'product_id',
+    'name',
+    'product_uom_qty',
+    'arrival_date',
+    'qty_delivered',
+    'move_ids'
+  ]
+
+  const params = [
+    ['order_id', '=', JSON.parse(sessionStorage.getItem('sale')).saleId],
+    ['product_id', '!=', false],
+    ['name', 'not like', '[GET'],
+    ['product_uom_qty', '!=', 0]
+  ]
+
+  document.querySelector('#saleName').innerHTML = JSON.parse(
+    sessionStorage.getItem('sale')
+  ).saleName
+
+  fetch(import.meta.env.PUBLIC_API + 'sale-lines', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      fields: fields,
+      params: params
+    })
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      const records = data.body
+
+      const tbody = document.querySelector(
+        '#saleLines tbody'
+      ) as HTMLTableElement
+      records.forEach((record) => {
+        const row = tbody.insertRow()
+
+        for (let i = 0; i <= fields.length; i++) {
+          const cell = row.insertCell()
+          cell.style.border = '1px solid #ddd'
+          cell.style.padding = '8px'
+          cell.style.textAlign = 'center'
+
+          if (i == 0) {
+            cell.innerHTML = record[fields[i]][1]
+            continue
+          }
+
+          if (i == fields.length - 1) {
+            cell.innerHTML = record['delivery_note']
+            continue
+          }
+
+          if (i == fields.length) {
+            cell.innerHTML = record['delivery_scheduled_date'].split(' ')[0]
+            continue
+          }
+
+          const text = record[fields[i]].toString()
+
+          if (i == 1) {
+            cell.style.width = '400px'
+          }
+
+          if (i == 3) {
+            cell.innerHTML = text != 'false' ? text.split(' ')[0] : 'Available'
+            continue
+          }
+
+          cell.innerHTML = text
+        }
+      })
+    })
+    .catch((error) => {
+      console.log(error)
+    })
+</script>

@@ -1,0 +1,268 @@
+---
+import Layout from '@layouts/Layout.astro'
+import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-rounded'
+import MaterialSymbolsFilterAlt from '~icons/material-symbols/filter-alt'
+import MaterialSymbolsFilterAltOffOutlineRounded from '~icons/material-symbols/filter-alt-off-outline-rounded'
+import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
+import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
+---
+
+<Layout>
+  <div class='w-[90%] my-5 mx-auto flex justify-between items-center'>
+    <button id='backButton' class='m-5'>
+      <MaterialSymbolsArrowBackRounded class:list={'text-[28px]'} />
+    </button>
+    <input
+      type='text'
+      id='myInput'
+      class='search-input'
+      placeholder='Search by Name or Parent Name...'
+    />
+    <div class='pagination-buttons items-center'>
+      <p>
+        <span id='minCount'>X</span>
+        -
+        <span id='maxCount'>X</span>
+        /
+        <span id='customersCount'>X</span>
+      </p>
+      <button id='previousPage'>
+        <MaterialSymbolsChevronLeftRounded class:list={'text-[28px]'} />
+      </button>
+      <button id='nextPage'>
+        <MaterialSymbolsChevronRightRounded class:list={'text-[28px]'} />
+      </button>
+    </div>
+  </div>
+  <table
+    id='customers'
+    class='my-5 mx-auto border-collapse customer-table sortable'
+  >
+    <thead class='cursor-pointer'>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <link
+    href='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css'
+    rel='stylesheet'
+  />
+  <script
+    src='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js'
+  ></script>
+</Layout>
+
+<style>
+  .customer-table th {
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    font-weight: bold;
+    cursor: default;
+    padding: 20px;
+    border: 1px solid #ddd;
+  }
+
+  .search-input {
+    display: block;
+    margin: 20px auto;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #000;
+    width: 50%;
+    font-size: 16px;
+  }
+
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+</style>
+
+<script>
+  document.querySelector('#backButton').addEventListener('click', () => {
+    window.location.href = '/'
+  })
+
+  const partnerID = JSON.parse(localStorage.getItem('user')).partnerId
+
+  let customersCount = 0
+
+  const fields = [
+    'translated_display_name',
+    'email'
+  ]
+
+  let params = [
+    ['agent_ids', '=', partnerID],
+    ['name', 'ilike', ''],
+    ['is_customer', '=', true],
+  ]
+
+  function fetchAndDisplayCustomers(actualRecord, params, isNew) {
+    fetch(import.meta.env.PUBLIC_API + 'customers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        isNew: isNew,
+        params: params,
+        fields: fields,
+        offset: actualRecord
+      })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.body.customersCount != 0) {
+          customersCount = data.body.customersCount
+
+          if (customersCount < 15) {
+            document.querySelector('#maxCount').innerHTML =
+              customersCount.toString()
+          } else {
+            document.querySelector('#maxCount').innerHTML = '15'
+          }
+
+          document.querySelector('#minCount').innerHTML = '1'
+          document.querySelector('#customersCount').innerHTML =
+            customersCount.toString()
+        }
+
+        const records = data.body.records
+
+        const tbody = document.querySelector(
+          '#customers tbody'
+        ) as HTMLTableElement
+
+        tbody.innerHTML = ''
+
+        records.forEach((record) => {
+          const row = tbody.insertRow()
+
+          for (let i = 0; i < fields.length; i++) {
+            const text = record[fields[i]].toString()
+            const cell = row.insertCell()
+            cell.style.border = '1px solid #ddd'
+            cell.style.padding = '8px'
+            cell.style.textAlign = 'center'
+            cell.innerHTML = text
+            
+            if (i == 0) {
+              cell.style.textDecoration = 'underline'
+              cell.style.cursor = 'pointer'
+              cell.addEventListener('click', () => {
+                openCustomerDetails(record.id)
+              })
+            }
+          }
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
+  function openCustomerDetails(id) {
+    localStorage.setItem(
+      'customer',
+      JSON.stringify({
+        customerID: id,
+      })
+    )
+
+    window.location.href = '/customer/'
+  }
+
+  document.querySelector('#previousPage').addEventListener('click', () => {
+    const maxCount = Number(document.querySelector('#maxCount').innerHTML)
+    const minCount = Number(document.querySelector('#minCount').innerHTML)
+
+    if (maxCount <= 15 && customersCount <= 15) {
+      return
+    }
+
+    if (minCount == 1) {
+      if (customersCount % 15 == 0) {
+        fetchAndDisplayCustomers(customersCount - 15, params, false)
+        document.querySelector('#minCount').innerHTML = (
+          customersCount - 14
+        ).toString()
+        document.querySelector('#maxCount').innerHTML = customersCount.toString()
+      } else {
+        fetchAndDisplayCustomers(customersCount - (customersCount % 15), params, false)
+        document.querySelector('#minCount').innerHTML = (
+          customersCount -
+          (customersCount % 15) +
+          1
+        ).toString()
+        document.querySelector('#maxCount').innerHTML = customersCount.toString()
+      }
+    } else if (
+      maxCount == customersCount &&
+      minCount == maxCount - (customersCount % 15) + 1
+    ) {
+      fetchAndDisplayCustomers(minCount - 16, params, false)
+      document.querySelector('#minCount').innerHTML = (minCount - 15).toString()
+      document.querySelector('#maxCount').innerHTML = (minCount - 1).toString()
+    } else {
+      fetchAndDisplayCustomers(minCount - 16, params, false)
+      document.querySelector('#minCount').innerHTML = (minCount - 15).toString()
+      document.querySelector('#maxCount').innerHTML = (maxCount - 15).toString()
+    }
+  })
+
+  document.querySelector('#nextPage').addEventListener('click', () => {
+    const maxCount = Number(document.querySelector('#maxCount').innerHTML)
+    const minCount = 1 + maxCount
+
+    if (maxCount <= 15 && customersCount <= 15) {
+      return
+    }
+
+    if (maxCount != customersCount) {
+      fetchAndDisplayCustomers(maxCount, params, false)
+
+      if (maxCount + 15 > customersCount) {
+        document.querySelector('#maxCount').innerHTML = customersCount.toString()
+        document.querySelector('#minCount').innerHTML = minCount.toString()
+      } else {
+        document.querySelector('#maxCount').innerHTML = (
+          maxCount + 15
+        ).toString()
+        document.querySelector('#minCount').innerHTML = minCount.toString()
+      }
+    } else {
+      fetchAndDisplayCustomers(0, params, false)
+      document.querySelector('#minCount').innerHTML = '1'
+      document.querySelector('#maxCount').innerHTML = '15'
+    }
+  })
+
+  document
+    .querySelector('#myInput')
+    .addEventListener('keypress', function (event: KeyboardEvent) {
+      console.log(params.length)
+      if (event.key === 'Enter') {
+        const inputValue = (this as HTMLInputElement).value.trim()
+
+        params[1] = ['name', 'ilike', inputValue]
+        fetchAndDisplayCustomers(0, params, true)
+      }
+    })
+
+  document.querySelector('#myInput').addEventListener('blur', function (event) {
+    if (event.target instanceof HTMLInputElement) {
+      const inputValue = (this as HTMLInputElement).value.trim()
+
+      params[1] = ['name', 'ilike', inputValue]
+      fetchAndDisplayCustomers(0, params, true)
+    }
+  })
+
+  fetchAndDisplayCustomers(0, params, true)
+</script>

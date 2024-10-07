@@ -1,0 +1,37 @@
+---
+import Layout from '@/layouts/Layout.astro'
+---
+
+<Layout>
+  <div class='divButton'>
+    <a href='/home/' class='btn-large'>Go Home</a>
+  </div>
+</Layout>
+
+<style>
+  .divButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 60vh;
+  }
+
+  .btn-large {
+    font-size: 24px;
+    padding: 20px 40px;
+    border-radius: 10px;
+    background-color: black;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+    transition:
+      background-color 0.3s,
+      color 0.3s;
+  }
+
+  .btn-large:hover {
+    background-color: white;
+    color: black;
+  }
+</style>

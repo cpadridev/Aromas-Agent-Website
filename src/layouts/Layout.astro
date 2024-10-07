@@ -1,0 +1,30 @@
+---
+import { ViewTransitions } from 'astro:transitions'
+---
+
+<html lang='en'>
+  <head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width' />
+    <meta name='generator' content={Astro.generator} />
+    <title>Aromas del Campo</title>
+    <ViewTransitions />
+    <link
+      rel='stylesheet'
+      href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css'
+    />
+  </head>
+  <body>
+    <header>
+      <img
+        src='/logo-aromas.png'
+        alt='Logo aromas'
+        class='block m-auto my-[40px]'
+      />
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer></footer>
+  </body>
+</html>

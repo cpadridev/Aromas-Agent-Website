@@ -1,0 +1,168 @@
+---
+import Layout from '@layouts/Layout.astro';
+import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-rounded';
+---
+
+<Layout>
+  <div class='w-[90%] my-5 mx-auto flex justify-between items-center'>
+    <button id='backButton' class='m-5'>
+      <MaterialSymbolsArrowBackRounded class:list={'text-[28px]'} />
+    </button>
+  </div>
+  <table
+    id='deliveryNotesTable'
+    class='my-5 mx-auto border-collapse delivery-notes-table sortable'
+  >
+    <thead class='cursor-pointer'>
+      <tr>
+        <th>Name</th>
+        <th>Origin Document</th>
+        <th >Scheduled Date</th>
+        <th aria-sort='descending'>Date Shipped</th>
+        <th>Tracking Number</th>
+        <th>State</th>
+        <th>Print</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <link
+    href='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css'
+    rel='stylesheet'
+  />
+  <script
+    src='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js'
+  ></script>
+</Layout>
+
+<style>
+  .delivery-notes-table th {
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    font-weight: bold;
+    cursor: default;
+    padding: 20px;
+    border: 1px solid #ddd;
+  }
+</style>
+
+<script>
+  document.querySelector('#backButton').addEventListener('click', () => {
+    window.location.href = '/sales/';
+  });
+
+  const partnerID = JSON.parse(localStorage.getItem('customer')).customerID
+  
+  const fields = [
+    'name',
+    'origin',
+    'scheduled_date',
+    'date_done',
+    'carrier_tracking_ref',
+    'state',
+    'carrier_tracking_url'
+  ]
+
+  let params: (string | (string | number)[])[] = [
+    ['state', '!=', 'cancel'],
+    ['picking_type_id', '=', 2],
+  ];
+
+  const deliveries = JSON.parse(sessionStorage.getItem('deliveries'))
+  for (let i = 0; i < deliveries.length; i++) {
+    if (i == deliveries.length - 1) {
+      params.splice(2 + i, 0, ['id', '=', deliveries[i]])
+    }
+
+    params.splice(2 + i, 0, '|', ['id', '=', deliveries[i]])
+  }
+
+  async function fetchAndDisplayOrders(actualRecord, params, isNew) {
+    fetch(import.meta.env.PUBLIC_API + 'delivery-notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        isNew: isNew,
+        params: params,
+        fields: fields,
+        limit: false,
+        offset: actualRecord,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const records = data.body.records;
+
+        const tbody = document.querySelector(
+          '#deliveryNotesTable tbody'
+        ) as HTMLTableElement;
+
+        tbody.innerHTML = '';
+
+        records.forEach((record) => {
+          const row = tbody.insertRow();
+
+          for (let i = 0; i < fields.length; i++) {
+            const cell = row.insertCell();
+
+            cell.style.border = '1px solid #ddd';
+            cell.style.padding = '8px';
+            cell.style.textAlign = 'center';
+
+            if (i == fields.length - 1) {
+              cell.style.cursor = 'pointer'
+              cell.innerHTML = '<i class="fa fa-print"></i>'
+              cell.addEventListener('click', () => {
+                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/3/' + partnerID + '/' + record.id, '_blank')
+              })
+              continue
+            }
+
+            let text = record[fields[i]].toString();
+
+            if (
+              text == 'assigned' ||
+              text == 'waiting' ||
+              text == 'confirmed'
+            ) {
+              text = 'To Prepare';
+            }
+            if (text == 'done') {
+              text = 'Sent';
+            }
+
+            if (text != 'false') {
+              if (
+                text.includes('-') &&
+                text.includes(':') &&
+                text.includes(' ')
+              ) {
+                cell.innerHTML = text.split(' ')[0];
+              } else {
+                cell.innerHTML = text;
+              }
+            } else {
+              cell.innerHTML = '-';
+            }
+
+            if (i == 4 && cell.innerHTML != '-') {
+              cell.style.cursor = 'pointer'
+              cell.style.textDecoration = 'underline'
+              cell.addEventListener('click', () =>
+                window.open(record['carrier_tracking_url'], '_blank')
+              )
+              continue
+            }
+          }
+        });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  fetchAndDisplayOrders(0, params, true);
+</script>

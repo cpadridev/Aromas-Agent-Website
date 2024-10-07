@@ -1,0 +1,467 @@
+---
+import Layout from '@layouts/Layout.astro'
+import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-rounded'
+import MaterialSymbolsFilterAlt from '~icons/material-symbols/filter-alt'
+import MaterialSymbolsFilterAltOffOutlineRounded from '~icons/material-symbols/filter-alt-off-outline-rounded'
+import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
+import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
+---
+
+<Layout>
+  <div class='w-[90%] my-5 mx-auto flex justify-between items-center'>
+    <button id='backButton' class='m-5'>
+      <MaterialSymbolsArrowBackRounded class:list={'text-[28px]'} />
+    </button>
+    <input
+      type='text'
+      id='myInput'
+      class='search-input'
+      placeholder='Search by Name or Client Order Reference..'
+    />
+    <div class='pagination-buttons items-center'>
+      <div class='dropdown'>
+        <button id='filterButton' class='dropbtn flex items-center'>
+          <MaterialSymbolsFilterAlt /> Filters
+        </button>
+        <div id='myDropdown' class='dropdown-content'>
+          <button id='quotationsFilter'>Quotation</button>
+          <hr />
+          <button id='pendingDeliveryStatusFilter'>Pending</button>
+          <button id='partialDeliveryStatusFilter'>Partial</button>
+          <button id='fullDeliveryStatusFilter'>Full</button>
+          <hr />
+          <button id='clearFilter' class='flex items-center'>
+            <MaterialSymbolsFilterAltOffOutlineRounded /> Clear Filters
+          </button>
+        </div>
+      </div>
+      <p>
+        <span id='minCount'>X</span>
+        -
+        <span id='maxCount'>X</span>
+        /
+        <span id='salesCount'>X</span>
+      </p>
+      <button id='previousPage'>
+        <MaterialSymbolsChevronLeftRounded class:list={'text-[28px]'} />
+      </button>
+      <button id='nextPage'>
+        <MaterialSymbolsChevronRightRounded class:list={'text-[28px]'} />
+      </button>
+    </div>
+  </div>
+  <table
+    id='salesOrder'
+    class='my-5 mx-auto border-collapse sales-table sortable'
+  >
+    <thead class='cursor-pointer'>
+      <tr>
+        <th>Name</th>
+        <th>Client Order Reference</th>
+        <th aria-sort='descending'>Date order</th>
+        <th>Commitment Date</th>
+        <th>Status</th>
+        <th>Total Amount</th>
+        <th>State</th>
+        <th>Deliveries</th>
+        <th>Print</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <link
+    href='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css'
+    rel='stylesheet'
+  />
+  <script
+    src='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js'
+  ></script>
+</Layout>
+
+<style>
+  .sales-table th {
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    font-weight: bold;
+    cursor: default;
+    padding: 20px;
+    border: 1px solid #ddd;
+  }
+
+  .search-input {
+    display: block;
+    margin: 20px auto;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #000;
+    width: 50%;
+    font-size: 16px;
+  }
+
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .dropbtn {
+    background-color: #000;
+    color: white;
+    padding: 20px;
+    font-size: 18px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .dropbtn:hover,
+  .dropbtn:focus {
+    background-color: #333;
+  }
+
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+  }
+
+  .dropdown-content button {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    text-align: left;
+    width: 100%;
+    border: none;
+    background: none;
+  }
+
+  .dropdown-content button:hover {
+    background-color: #ddd;
+  }
+
+  .show {
+    display: block;
+  }
+</style>
+
+<script>
+  document.querySelector('#backButton').addEventListener('click', () => {
+    window.location.href = '/customer/'
+  })
+
+  const partnerID = JSON.parse(localStorage.getItem('customer')).customerID
+
+  let salesCount = 0
+
+  const fields = [
+    'name',
+    'client_order_ref',
+    'date_order',
+    'commitment_date',
+    'delivery_status',
+    'amount_total',
+    'state',
+    'picking_ids'
+  ]
+
+  let params = [
+    ['partner_id', '=', partnerID],
+    ['delivery_status', 'ilike', ''],
+    '|',
+    ['name', 'ilike', ''],
+    ['client_order_ref', 'ilike', ''],
+    '|',
+    ['state', '=', 'sale'],
+    ['state', '=', 'done']
+  ]
+
+  const initialParams = [...params]
+
+  function fetchAndDisplayOrders(actualRecord, params, isNew) {
+    fetch(import.meta.env.PUBLIC_API + 'sales', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        isNew: isNew,
+        params: params,
+        fields: fields,
+        offset: actualRecord
+      })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.body.salesCount != 0) {
+          salesCount = data.body.salesCount
+
+          if (salesCount < 15) {
+            document.querySelector('#maxCount').innerHTML =
+              salesCount.toString()
+          } else {
+            document.querySelector('#maxCount').innerHTML = '15'
+          }
+
+          document.querySelector('#minCount').innerHTML = '1'
+          document.querySelector('#salesCount').innerHTML =
+            salesCount.toString()
+        }
+
+        const records = data.body.records
+
+        const tbody = document.querySelector(
+          '#salesOrder tbody'
+        ) as HTMLTableElement
+
+        tbody.innerHTML = ''
+
+        records.forEach((record) => {
+          const row = tbody.insertRow()
+
+          for (let i = 0; i <= fields.length; i++) {
+            const cell = row.insertCell()
+            cell.style.border = '1px solid #ddd'
+            cell.style.padding = '8px'
+            cell.style.textAlign = 'center'
+            if (i == fields.length - 1) {
+              cell.style.cursor = 'pointer'
+              cell.style.textDecoration = 'underline'
+              cell.innerHTML = 'Deliveries'
+              cell.addEventListener('click', () =>
+                openDeliveries(record.picking_ids)
+              )
+              continue
+            }
+            if (i == fields.length) {
+              cell.style.cursor = 'pointer'
+              cell.innerHTML = '<i class="fa fa-print"></i>'
+              cell.addEventListener('click', () => {
+                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/1/' + partnerID + '/' + record.id, '_blank')
+              })
+              continue
+            }
+
+            let text = record[fields[i]].toString()
+
+            if (text == 'pending') {
+              text = 'Not Delivered';
+              cell.style.color = 'red';
+            }
+            if (text == 'partial') {
+              text = 'Partially Delivered';
+              cell.style.color = 'yellow';
+            }
+            if (text == 'full') {
+              text = 'Fully Delivered';
+              cell.style.color = 'green';
+            }
+
+            if (text == 'draft' || text == 'sent') {
+              text = 'Quotation'
+            }
+            if (text == 'sale' || text == 'done') {
+              text = 'Sales Order'
+            }
+
+            if (text != 'false') {
+              if (
+                text.includes('-') &&
+                text.includes(':') &&
+                text.includes(' ')
+              ) {
+                cell.innerHTML = text.split(' ')[0]
+              } else {
+                cell.innerHTML = text
+              }
+            } else {
+              cell.innerHTML = '-'
+            }
+
+            if (i == 0) {
+              cell.style.textDecoration = 'underline'
+              cell.style.cursor = 'pointer'
+              cell.addEventListener('click', () => {
+                console.log(record.id, record.name)
+                opensaleDetails(record.id, record.name)
+              })
+            }
+
+            if (i == 1) {
+              cell.style.width = '500px'
+            }
+          }
+        })
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
+
+  function opensaleDetails(id, name) {
+    sessionStorage.setItem(
+      'sale',
+      JSON.stringify({
+        saleId: id,
+        saleName: name
+      })
+    )
+
+    window.location.href = 'sale-lines/'
+  }
+
+  function openDeliveries(pickingIds) {
+    sessionStorage.setItem('deliveries', JSON.stringify(pickingIds))
+    window.location.href = 'delivery-notes/'
+  }
+
+  document.querySelector('#quotationsFilter').addEventListener('click', () => {
+    ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+    params = [...initialParams]
+    params[6] = ['state', '=', 'draft']
+    params[7] = ['state', '=', 'sent']
+    fetchAndDisplayOrders(0, params, true)
+  })
+
+  document
+    .querySelector('#pendingDeliveryStatusFilter')
+    .addEventListener('click', () => {
+      ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+      params = [...initialParams]
+      params[1] = ['delivery_status', '=', 'pending']
+      fetchAndDisplayOrders(0, params, true)
+    })
+
+  document
+    .querySelector('#partialDeliveryStatusFilter')
+    .addEventListener('click', () => {
+      ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+      params = [...initialParams]
+      params[1] = ['delivery_status', '=', 'partial']
+      fetchAndDisplayOrders(0, params, true)
+    })
+
+  document
+    .querySelector('#fullDeliveryStatusFilter')
+    .addEventListener('click', () => {
+      ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+      params = [...initialParams]
+      params[1] = ['delivery_status', '=', 'full']
+      fetchAndDisplayOrders(0, params, true)
+    })
+
+  document.querySelector('#clearFilter').addEventListener('click', () => {
+    ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+    params = [...initialParams]
+    fetchAndDisplayOrders(0, params, true)
+  })
+
+  document.querySelector('#previousPage').addEventListener('click', () => {
+    const maxCount = Number(document.querySelector('#maxCount').innerHTML)
+    const minCount = Number(document.querySelector('#minCount').innerHTML)
+
+    if (maxCount <= 15 && salesCount <= 15) {
+      return
+    }
+
+    if (minCount == 1) {
+      if (salesCount % 15 == 0) {
+        fetchAndDisplayOrders(salesCount - 15, params, false)
+        document.querySelector('#minCount').innerHTML = (
+          salesCount - 14
+        ).toString()
+        document.querySelector('#maxCount').innerHTML = salesCount.toString()
+      } else {
+        fetchAndDisplayOrders(salesCount - (salesCount % 15), params, false)
+        document.querySelector('#minCount').innerHTML = (
+          salesCount -
+          (salesCount % 15) +
+          1
+        ).toString()
+        document.querySelector('#maxCount').innerHTML = salesCount.toString()
+      }
+    } else if (
+      maxCount == salesCount &&
+      minCount == maxCount - (salesCount % 15) + 1
+    ) {
+      fetchAndDisplayOrders(minCount - 16, params, false)
+      document.querySelector('#minCount').innerHTML = (minCount - 15).toString()
+      document.querySelector('#maxCount').innerHTML = (minCount - 1).toString()
+    } else {
+      fetchAndDisplayOrders(minCount - 16, params, false)
+      document.querySelector('#minCount').innerHTML = (minCount - 15).toString()
+      document.querySelector('#maxCount').innerHTML = (maxCount - 15).toString()
+    }
+  })
+
+  document.querySelector('#nextPage').addEventListener('click', () => {
+    const maxCount = Number(document.querySelector('#maxCount').innerHTML)
+    const minCount = 1 + maxCount
+
+    if (maxCount <= 15 && salesCount <= 15) {
+      return
+    }
+
+    if (maxCount != salesCount) {
+      fetchAndDisplayOrders(maxCount, params, false)
+
+      if (maxCount + 15 > salesCount) {
+        document.querySelector('#maxCount').innerHTML = salesCount.toString()
+        document.querySelector('#minCount').innerHTML = minCount.toString()
+      } else {
+        document.querySelector('#maxCount').innerHTML = (
+          maxCount + 15
+        ).toString()
+        document.querySelector('#minCount').innerHTML = minCount.toString()
+      }
+    } else {
+      fetchAndDisplayOrders(0, params, false)
+      document.querySelector('#minCount').innerHTML = '1'
+      document.querySelector('#maxCount').innerHTML = '15'
+    }
+  })
+
+  document
+    .querySelector('#myInput')
+    .addEventListener('keypress', function (event: KeyboardEvent) {
+      console.log(params.length)
+      if (event.key === 'Enter') {
+        const inputValue = (this as HTMLInputElement).value.trim()
+
+        params[3] = ['name', 'ilike', inputValue]
+        params[4] = ['client_order_ref', 'ilike', inputValue]
+        fetchAndDisplayOrders(0, params, true)
+      }
+    })
+
+  document.querySelector('#myInput').addEventListener('blur', function (event) {
+    if (event.target instanceof HTMLInputElement) {
+      const inputValue = (this as HTMLInputElement).value.trim()
+
+      params[3] = ['name', 'ilike', inputValue]
+      params[4] = ['client_order_ref', 'ilike', inputValue]
+      fetchAndDisplayOrders(0, params, true)
+    }
+  })
+
+  document.querySelector('#filterButton').addEventListener('click', () => {
+    document.getElementById('myDropdown').classList.toggle('show')
+  })
+
+  window.onclick = function (event) {
+    if (!event.target.matches('.dropbtn')) {
+      var dropdowns = document.getElementsByClassName('dropdown-content')
+      var i
+      for (i = 0; i < dropdowns.length; i++) {
+        var openDropdown = dropdowns[i]
+        if (openDropdown.classList.contains('show')) {
+          openDropdown.classList.remove('show')
+        }
+      }
+    }
+  }
+
+  fetchAndDisplayOrders(0, params, true)
+</script>
