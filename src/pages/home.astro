@@ -41,7 +41,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     <thead class='cursor-pointer'>
       <tr>
         <th>Name</th>
+        <th>Address</th>
         <th>Email</th>
+        <th>Sales Count</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -94,13 +96,15 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
 
   const fields = [
     'translated_display_name',
-    'email'
+    'contact_address_complete',
+    'email',
+    'sale_order_count'
   ]
 
   let params = [
     ['agent_ids', '=', partnerID],
     ['name', 'ilike', ''],
-    ['is_customer', '=', true],
+    ['is_customer', '=', true]
   ]
 
   function fetchAndDisplayCustomers(actualRecord, params, isNew) {
