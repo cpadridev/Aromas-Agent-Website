@@ -259,8 +259,11 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
               cell.style.color = 'green';
             }
 
-            if (text == 'draft' || text == 'sent') {
+            if (text == 'draft') {
               text = 'Quotation'
+            }
+            if (text == 'sent') {
+              text = 'Quotation Sent'
             }
             if (text == 'sale' || text == 'done') {
               text = 'Sales Order'
