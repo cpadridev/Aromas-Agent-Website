@@ -16,7 +16,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       type='text'
       id='myInput'
       class='search-input'
-      placeholder='Search by Name or Client Order Reference..'
+      placeholder='Search by Name or Sale Origin...'
     />
     <div class='pagination-buttons items-center'>
       <div class='dropdown'>
@@ -24,11 +24,11 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
           <MaterialSymbolsFilterAlt /> Filters
         </button>
         <div id='myDropdown' class='dropdown-content'>
-          <button id='quotationsFilter'>Quotation</button>
-          <hr />
-          <button id='pendingDeliveryStatusFilter'>Pending</button>
-          <button id='partialDeliveryStatusFilter'>Partial</button>
-          <button id='fullDeliveryStatusFilter'>Full</button>
+          <button id='notPaidPaymentStateFilter'>Not Paid</button>
+          <button id='inPaymentPaymentStateFilter'>In Payment</button>
+          <button id='partialPaymentStateFilter'>Partial Payment</button>
+          <button id='paidPaymentStateFilter'>Paid</button>
+          <button id='reversedPaymentStateFilter'>Reversed</button>
           <hr />
           <button id='clearFilter' class='flex items-center'>
             <MaterialSymbolsFilterAltOffOutlineRounded /> Clear Filters
@@ -40,7 +40,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
         -
         <span id='maxCount'>X</span>
         /
-        <span id='salesCount'>X</span>
+        <span id='invoicesCount'>X</span>
       </p>
       <button id='previousPage'>
         <MaterialSymbolsChevronLeftRounded class:list={'text-[28px]'} />
@@ -51,19 +51,17 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     </div>
   </div>
   <table
-    id='salesOrder'
-    class='my-5 mx-auto border-collapse sales-table sortable'
+    id='invoicesTable'
+    class='my-5 mx-auto border-collapse invoices-table sortable'
   >
     <thead class='cursor-pointer'>
       <tr>
         <th>Name</th>
-        <th>Client Order Reference</th>
-        <th aria-sort='descending'>Date order</th>
-        <th>Commitment Date</th>
-        <th>Status</th>
+        <th>Origin Documents</th>
+        <th>Invoice Date</th>
         <th>Total Amount</th>
+        <th>Residual Amount</th>
         <th>State</th>
-        <th>Deliveries</th>
         <th>Print</th>
       </tr>
     </thead>
@@ -79,7 +77,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
 </Layout>
 
 <style>
-  .sales-table th {
+  .invoices-table th {
     text-align: center;
     background-color: #fff;
     color: #000;
@@ -149,41 +147,35 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
 
 <script>
   document.querySelector('#backButton').addEventListener('click', () => {
-    window.location.href = '/customer/'
+    window.location.href = '/home'
   })
 
-  const partnerID = JSON.parse(localStorage.getItem('customer')).customerID
-
-  let salesCount = 0
+  const partnerID = JSON.parse(localStorage.getItem('user')).partnerId
 
   const fields = [
     'name',
-    'client_order_ref',
-    'date_order',
-    'commitment_date',
-    'delivery_status',
-    'amount_total',
-    'state',
-    'picking_ids'
+    'invoice_origin',
+    'invoice_date',
+    'amount_total_signed',
+    'amount_residual',
+    'payment_state'
   ]
 
+  let invoicesCount = 0
   let params = [
-    ['partner_id', '=', partnerID],
-    ['delivery_status', 'ilike', ''],
+    ['partner_agent_ids', '=', partnerID],
+    ['state', '=', 'posted'],
+    ['invoice_date', '!=', false],
+    ['payment_state', 'ilike', ''],
     '|',
     ['name', 'ilike', ''],
-    ['client_order_ref', 'ilike', ''],
-    '|',
-    '&',
-    ['state', '=', 'sale'],
-    ['website_id', '=', false],
-    ['state', '=', 'done']
+    ['invoice_origin', 'ilike', '']
   ]
 
   const initialParams = [...params]
 
   function fetchAndDisplayOrders(actualRecord, params, isNew) {
-    fetch(import.meta.env.PUBLIC_API + 'sales', {
+    fetch(import.meta.env.PUBLIC_API + 'invoices', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -197,25 +189,25 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.body.salesCount != 0) {
-          salesCount = data.body.salesCount
+        if (data.body.invoicesCount != 0) {
+          invoicesCount = data.body.invoicesCount
 
-          if (salesCount < 15) {
+          if (invoicesCount < 15) {
             document.querySelector('#maxCount').innerHTML =
-              salesCount.toString()
+              invoicesCount.toString()
           } else {
             document.querySelector('#maxCount').innerHTML = '15'
           }
 
           document.querySelector('#minCount').innerHTML = '1'
-          document.querySelector('#salesCount').innerHTML =
-            salesCount.toString()
+          document.querySelector('#invoicesCount').innerHTML =
+            invoicesCount.toString()
         }
 
         const records = data.body.records
 
         const tbody = document.querySelector(
-          '#salesOrder tbody'
+          '#invoicesTable tbody'
         ) as HTMLTableElement
 
         tbody.innerHTML = ''
@@ -225,47 +217,37 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
 
           for (let i = 0; i <= fields.length; i++) {
             const cell = row.insertCell()
+
             cell.style.border = '1px solid #ddd'
             cell.style.padding = '8px'
             cell.style.textAlign = 'center'
-            if (i == fields.length - 1) {
-              cell.style.cursor = 'pointer'
-              cell.style.textDecoration = 'underline'
-              cell.innerHTML = 'Deliveries'
-              cell.addEventListener('click', () =>
-                openDeliveries(record.picking_ids)
-              )
-              continue
-            }
+
             if (i == fields.length) {
               cell.style.cursor = 'pointer'
               cell.innerHTML = '<i class="fa fa-print"></i>'
               cell.addEventListener('click', () => {
-                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/1/' + partnerID + '/' + record.id, '_blank')
+                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/2/' + partnerID + '/' + record.id, '_blank')
               })
               continue
             }
 
             let text = record[fields[i]].toString()
 
-            if (text == 'pending') {
-              text = 'Not Delivered';
-              cell.style.color = 'red';
+            if (text == 'not_paid') {
+              text = 'Unpaid'
+              cell.style.color = 'red'
+            }
+            if (text == 'in_payment') {
+              text = 'In Payment'
+            }
+            if (text == 'paid') {
+              text = 'Paid'
             }
             if (text == 'partial') {
-              text = 'Partially Delivered';
-              cell.style.color = 'yellow';
+              text = 'Partially Paid'
             }
-            if (text == 'full') {
-              text = 'Fully Delivered';
-              cell.style.color = 'green';
-            }
-
-            if (text == 'draft' || text == 'sent') {
-              text = 'Quotation'
-            }
-            if (text == 'sale' || text == 'done') {
-              text = 'Sales Order'
+            if (text == 'reversed') {
+              text = 'Reversed'
             }
 
             if (text != 'false') {
@@ -282,17 +264,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
               cell.innerHTML = '-'
             }
 
-            if (i == 0) {
-              cell.style.textDecoration = 'underline'
-              cell.style.cursor = 'pointer'
-              cell.addEventListener('click', () => {
-                console.log(record.id, record.name)
-                opensaleDetails(record.id, record.name)
-              })
-            }
-
             if (i == 1) {
-              cell.style.width = '500px'
+              cell.style.width = '600px'
             }
           }
         })
@@ -302,55 +275,48 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       })
   }
 
-  function opensaleDetails(id, name) {
-    sessionStorage.setItem(
-      'sale',
-      JSON.stringify({
-        saleId: id,
-        saleName: name
-      })
-    )
-
-    window.location.href = 'sale-lines/'
-  }
-
-  function openDeliveries(pickingIds) {
-    sessionStorage.setItem('deliveries', JSON.stringify(pickingIds))
-    window.location.href = 'delivery-notes/'
-  }
-
-  document.querySelector('#quotationsFilter').addEventListener('click', () => {
-    ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
-    params = [...initialParams]
-    params[7] = ['state', '=', 'draft']
-    params[9] = ['state', '=', 'sent']
-    fetchAndDisplayOrders(0, params, true)
-  })
-
   document
-    .querySelector('#pendingDeliveryStatusFilter')
+    .querySelector('#notPaidPaymentStateFilter')
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[1] = ['delivery_status', '=', 'pending']
+      params[3] = ['payment_state', '=', 'not_paid']
       fetchAndDisplayOrders(0, params, true)
     })
 
   document
-    .querySelector('#partialDeliveryStatusFilter')
+    .querySelector('#inPaymentPaymentStateFilter')
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[1] = ['delivery_status', '=', 'partial']
+      params[3] = ['payment_state', '=', 'in_payment']
       fetchAndDisplayOrders(0, params, true)
     })
 
   document
-    .querySelector('#fullDeliveryStatusFilter')
+    .querySelector('#partialPaymentStateFilter')
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[1] = ['delivery_status', '=', 'full']
+      params[3] = ['payment_state', '=', 'partial']
+      fetchAndDisplayOrders(0, params, true)
+    })
+
+  document
+    .querySelector('#paidPaymentStateFilter')
+    .addEventListener('click', () => {
+      ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+      params = [...initialParams]
+      params[3] = ['payment_state', '=', 'paid']
+      fetchAndDisplayOrders(0, params, true)
+    })
+
+  document
+    .querySelector('#reversedPaymentStateFilter')
+    .addEventListener('click', () => {
+      ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
+      params = [...initialParams]
+      params[3] = ['payment_state', '=', 'reversed']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -364,29 +330,33 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     const maxCount = Number(document.querySelector('#maxCount').innerHTML)
     const minCount = Number(document.querySelector('#minCount').innerHTML)
 
-    if (maxCount <= 15 && salesCount <= 15) {
+    if (maxCount <= 15 && invoicesCount <= 15) {
       return
     }
 
     if (minCount == 1) {
-      if (salesCount % 15 == 0) {
-        fetchAndDisplayOrders(salesCount - 15, params, false)
+      if (invoicesCount % 15 == 0) {
+        fetchAndDisplayOrders(invoicesCount - 15, params, false)
         document.querySelector('#minCount').innerHTML = (
-          salesCount - 14
+          invoicesCount - 14
         ).toString()
-        document.querySelector('#maxCount').innerHTML = salesCount.toString()
+        document.querySelector('#maxCount').innerHTML = invoicesCount.toString()
       } else {
-        fetchAndDisplayOrders(salesCount - (salesCount % 15), params, false)
+        fetchAndDisplayOrders(
+          invoicesCount - (invoicesCount % 15),
+          params,
+          false
+        )
         document.querySelector('#minCount').innerHTML = (
-          salesCount -
-          (salesCount % 15) +
+          invoicesCount -
+          (invoicesCount % 15) +
           1
         ).toString()
-        document.querySelector('#maxCount').innerHTML = salesCount.toString()
+        document.querySelector('#maxCount').innerHTML = invoicesCount.toString()
       }
     } else if (
-      maxCount == salesCount &&
-      minCount == maxCount - (salesCount % 15) + 1
+      maxCount == invoicesCount &&
+      minCount == maxCount - (invoicesCount % 15) + 1
     ) {
       fetchAndDisplayOrders(minCount - 16, params, false)
       document.querySelector('#minCount').innerHTML = (minCount - 15).toString()
@@ -402,15 +372,15 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     const maxCount = Number(document.querySelector('#maxCount').innerHTML)
     const minCount = 1 + maxCount
 
-    if (maxCount <= 15 && salesCount <= 15) {
+    if (maxCount <= 15 && invoicesCount <= 15) {
       return
     }
 
-    if (maxCount != salesCount) {
+    if (maxCount != invoicesCount) {
       fetchAndDisplayOrders(maxCount, params, false)
 
-      if (maxCount + 15 > salesCount) {
-        document.querySelector('#maxCount').innerHTML = salesCount.toString()
+      if (maxCount + 15 > invoicesCount) {
+        document.querySelector('#maxCount').innerHTML = invoicesCount.toString()
         document.querySelector('#minCount').innerHTML = minCount.toString()
       } else {
         document.querySelector('#maxCount').innerHTML = (
@@ -432,8 +402,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[3] = ['name', 'ilike', inputValue]
-        params[4] = ['client_order_ref', 'ilike', inputValue]
+        params[5] = ['name', 'ilike', inputValue]
+        params[6] = ['invoice_origin', 'ilike', inputValue]
         fetchAndDisplayOrders(0, params, true)
       }
     })
@@ -442,8 +412,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[3] = ['name', 'ilike', inputValue]
-      params[4] = ['client_order_ref', 'ilike', inputValue]
+      params[5] = ['name', 'ilike', inputValue]
+      params[6] = ['invoice_origin', 'ilike', inputValue]
       fetchAndDisplayOrders(0, params, true)
     }
   })

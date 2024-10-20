@@ -150,12 +150,20 @@ import Layout from '@layouts/Layout.astro';
     })
       .then((response) => response.json())
       .then((data) => {
+        let partnerId = data.body[0]['partner_id'][0]
+        let partnerName = data.body[0]['partner_id'][1]
+
+        if (data.body[0]['parent_id']) {
+          partnerId = data.body[0]['parent_id'][0]
+          partnerName = data.body[0]['parent_id'][1]
+        }
+
         localStorage.setItem(
           'user',
           JSON.stringify({
             id: data.body[0]['id'],
-            partnerId: data.body[0]['partner_id'][0],
-            partnerName: data.body[0]['partner_id'][1],
+            partnerId: partnerId,
+            partnerName: partnerName,
           })
         );
         sessionStorage.setItem(
