@@ -174,9 +174,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     ['name', 'ilike', ''],
     ['client_order_ref', 'ilike', ''],
     '|',
-    '&',
     ['state', '=', 'sale'],
-    ['website_id', 'ilike', ''],
     ['state', '=', 'done']
   ]
 
@@ -322,8 +320,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
   document.querySelector('#quotationsFilter').addEventListener('click', () => {
     ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
     params = [...initialParams]
+    params.splice(6, 0, '&')
     params[7] = ['state', '=', 'draft']
-    params[8] = ['website_id', '=', false]
+    params.splice(8, 0, ['website_id', '=', false])
     params[9] = ['state', '=', 'sent']
     fetchAndDisplayOrders(0, params, true)
   })
