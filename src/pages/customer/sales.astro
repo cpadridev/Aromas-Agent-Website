@@ -176,7 +176,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     '|',
     '&',
     ['state', '=', 'sale'],
-    ['website_id', '=', false],
+    ['website_id', 'ilike', ''],
     ['state', '=', 'done']
   ]
 
@@ -323,6 +323,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
     params = [...initialParams]
     params[7] = ['state', '=', 'draft']
+    params[8] = ['website_id', '=', false]
     params[9] = ['state', '=', 'sent']
     fetchAndDisplayOrders(0, params, true)
   })
