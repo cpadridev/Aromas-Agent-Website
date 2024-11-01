@@ -1,8 +1,6 @@
 ---
 import Layout from '@layouts/Layout.astro'
 import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-rounded'
-import MaterialSymbolsFilterAlt from '~icons/material-symbols/filter-alt'
-import MaterialSymbolsFilterAltOffOutlineRounded from '~icons/material-symbols/filter-alt-off-outline-rounded'
 import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
 import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
 ---
@@ -16,7 +14,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       type='text'
       id='myInput'
       class='search-input'
-      placeholder='Search by Name or Parent Name...'
+      placeholder='Search by Name, Parent Name or VAT...'
     />
     <div class='pagination-buttons items-center'>
       <p>
@@ -41,9 +39,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     <thead class='cursor-pointer'>
       <tr>
         <th>Name</th>
+        <th>VAT</th>
         <th>Address</th>
         <th>Email</th>
-        <th>Sales Count</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -96,15 +94,18 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
 
   const fields = [
     'translated_display_name',
+    'vat',
     'contact_address_complete',
-    'email',
-    'sale_order_count'
+    'email'
   ]
 
   let params = [
     ['agent_ids', '=', partnerID],
+    ['is_customer', '=', true],
+    ['parent_id', '=', false],
+    '|',
     ['name', 'ilike', ''],
-    ['is_customer', '=', true]
+    ['vat', 'ilike', ''],
   ]
 
   function fetchAndDisplayCustomers(actualRecord, params, isNew) {
@@ -254,7 +255,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[1] = ['name', 'ilike', inputValue]
+        params[4] = ['name', 'ilike', inputValue]
+        params[5] = ['vat', 'ilike', inputValue]
         fetchAndDisplayCustomers(0, params, true)
       }
     })
@@ -263,7 +265,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[1] = ['name', 'ilike', inputValue]
+      params[4] = ['name', 'ilike', inputValue]
+      params[5] = ['vat', 'ilike', inputValue]
       fetchAndDisplayCustomers(0, params, true)
     }
   })
