@@ -42,6 +42,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
         <th>VAT</th>
         <th>Address</th>
         <th>Email</th>
+        <th>Users</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -96,7 +97,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     'translated_display_name',
     'vat',
     'contact_address_complete',
-    'email'
+    'email',
+    'portal_users'
   ]
 
   let params = [
@@ -164,6 +166,14 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
                 openCustomerDetails(record.id)
               })
             }
+
+            if (i == fields.length - 1) {
+              cell.style.textDecoration = 'underline'
+              cell.style.cursor = 'pointer'
+              cell.addEventListener('click', () => {
+                openUsersDetails(record.id)
+              })
+            }
           }
         })
       })
@@ -181,6 +191,17 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     )
 
     window.location.href = '/customer/'
+  }
+
+  function openUsersDetails(id) {
+    localStorage.setItem(
+      'customer',
+      JSON.stringify({
+        customerID: id,
+      })
+    )
+
+    window.location.href = '/users/'
   }
 
   document.querySelector('#previousPage').addEventListener('click', () => {
