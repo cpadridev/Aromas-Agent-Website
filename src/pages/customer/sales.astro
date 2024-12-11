@@ -152,7 +152,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     window.location.href = '/customer/'
   })
 
-  const partnerID = JSON.parse(localStorage.getItem('customer')).customerID
+  const partnerID = JSON.parse(localStorage.getItem('user')).partnerId
+  const customerID = JSON.parse(localStorage.getItem('customer')).customerID
 
   let salesCount = 0
 
@@ -168,7 +169,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
   ]
 
   let params = [
-    ['partner_id', '=', partnerID],
+    ['partner_agent_ids', '=', partnerID],
+    ['partner_id', '=', customerID],
     ['delivery_status', 'ilike', ''],
     '|',
     ['name', 'ilike', ''],
@@ -239,7 +241,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
               cell.style.cursor = 'pointer'
               cell.innerHTML = '<i class="fa fa-print"></i>'
               cell.addEventListener('click', () => {
-                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/1/' + partnerID + '/' + record.id, '_blank')
+                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/1/' + customerID + '/' + record.id, '_blank')
               })
               continue
             }
@@ -321,9 +323,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
     params = [...initialParams]
     params.splice(6, 0, '&')
-    params[7] = ['state', '=', 'draft']
+    params[8] = ['state', '=', 'draft']
     params.splice(8, 0, ['website_id', '=', false])
-    params[9] = ['state', '=', 'sent']
+    params[10] = ['state', '=', 'sent']
     fetchAndDisplayOrders(0, params, true)
   })
 
@@ -332,7 +334,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[1] = ['delivery_status', '=', 'pending']
+      params[2] = ['delivery_status', '=', 'pending']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -341,7 +343,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[1] = ['delivery_status', '=', 'partial']
+      params[2] = ['delivery_status', '=', 'partial']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -350,7 +352,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[1] = ['delivery_status', '=', 'full']
+      params[2] = ['delivery_status', '=', 'full']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -432,8 +434,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[3] = ['name', 'ilike', inputValue]
-        params[4] = ['client_order_ref', 'ilike', inputValue]
+        params[4] = ['name', 'ilike', inputValue]
+        params[5] = ['client_order_ref', 'ilike', inputValue]
         fetchAndDisplayOrders(0, params, true)
       }
     })
@@ -442,8 +444,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[3] = ['name', 'ilike', inputValue]
-      params[4] = ['client_order_ref', 'ilike', inputValue]
+      params[4] = ['name', 'ilike', inputValue]
+      params[5] = ['client_order_ref', 'ilike', inputValue]
       fetchAndDisplayOrders(0, params, true)
     }
   })

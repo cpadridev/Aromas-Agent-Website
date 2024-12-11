@@ -150,7 +150,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     window.location.href = '/customer/'
   })
 
-  const partnerID = JSON.parse(localStorage.getItem('customer')).customerID
+  const customerID = JSON.parse(localStorage.getItem('customer')).customerID
+  const partnerID = JSON.parse(localStorage.getItem('user')).partnerId
 
   const fields = [
     'name',
@@ -163,7 +164,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
 
   let invoicesCount = 0
   let params = [
-    ['partner_id', '=', partnerID],
+    ['partner_id', '=', customerID],
+    ['partner_agent_ids', '=', partnerID],
     ['state', '=', 'posted'],
     ['invoice_date', '!=', false],
     ['payment_state', 'ilike', ''],
@@ -226,7 +228,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
               cell.style.cursor = 'pointer'
               cell.innerHTML = '<i class="fa fa-print"></i>'
               cell.addEventListener('click', () => {
-                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/2/' + partnerID + '/' + record.id, '_blank')
+                window.open('https://indawsodoo-aromasdelcampo.odoo.com/aromas_reports/2/' + customerID + '/' + record.id, '_blank')
               })
               continue
             }
@@ -280,7 +282,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[3] = ['payment_state', '=', 'not_paid']
+      params[4] = ['payment_state', '=', 'not_paid']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -289,7 +291,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[3] = ['payment_state', '=', 'in_payment']
+      params[4] = ['payment_state', '=', 'in_payment']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -298,7 +300,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[3] = ['payment_state', '=', 'partial']
+      params[4] = ['payment_state', '=', 'partial']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -307,7 +309,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[3] = ['payment_state', '=', 'paid']
+      params[4] = ['payment_state', '=', 'paid']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -316,7 +318,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     .addEventListener('click', () => {
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
-      params[3] = ['payment_state', '=', 'reversed']
+      params[4] = ['payment_state', '=', 'reversed']
       fetchAndDisplayOrders(0, params, true)
     })
 
@@ -402,8 +404,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[5] = ['name', 'ilike', inputValue]
-        params[6] = ['invoice_origin', 'ilike', inputValue]
+        params[6] = ['name', 'ilike', inputValue]
+        params[7] = ['invoice_origin', 'ilike', inputValue]
         fetchAndDisplayOrders(0, params, true)
       }
     })
@@ -412,8 +414,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[5] = ['name', 'ilike', inputValue]
-      params[6] = ['invoice_origin', 'ilike', inputValue]
+      params[6] = ['name', 'ilike', inputValue]
+      params[7] = ['invoice_origin', 'ilike', inputValue]
       fetchAndDisplayOrders(0, params, true)
     }
   })
