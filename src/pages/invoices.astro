@@ -151,6 +151,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     window.location.href = '/home'
   })
 
+  localStorage.removeItem('customer')
   const partnerID = JSON.parse(localStorage.getItem('user')).partnerId
 
   const fields = [
