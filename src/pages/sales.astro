@@ -26,9 +26,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
         <div id='myDropdown' class='dropdown-content'>
           <button id='quotationsFilter'>Quotation</button>
           <hr />
-          <button id='pendingDeliveryStatusFilter'>Pending</button>
-          <button id='partialDeliveryStatusFilter'>Partial</button>
-          <button id='fullDeliveryStatusFilter'>Full</button>
+          <button id='pendingDeliveryStatusFilter'>Not Delivered</button>
+          <button id='partialDeliveryStatusFilter'>Partially Delivered</button>
+          <button id='fullDeliveryStatusFilter'>Fully Delivered</button>
           <hr />
           <button id='clearFilter' class='flex items-center'>
             <MaterialSymbolsFilterAltOffOutlineRounded /> Clear Filters
@@ -323,10 +323,21 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
   document.querySelector('#quotationsFilter').addEventListener('click', () => {
     ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
     params = [...initialParams]
-    params.splice(6, 0, '&')
-    params[7] = ['state', '=', 'draft']
-    params.splice(8, 0, ['website_id', '=', false])
-    params[9] = ['state', '=', 'sent']
+    params = params.filter(
+      (param) =>
+        !(
+          Array.isArray(param) &&
+          param[0] === 'state' &&
+          (param[2] === 'sale' || param[2] === 'done')
+        )
+    )
+
+    params.push(
+      ['state', '=', 'sent'],
+      '&',
+      ['state', '=', 'draft'],
+      ['website_id', '=', false]
+    )
     fetchAndDisplayOrders(0, params, true)
   })
 
