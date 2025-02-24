@@ -73,9 +73,6 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     href='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css'
     rel='stylesheet'
   />
-  <script
-    src='https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js'
-  ></script>
 </Layout>
 
 <style>
@@ -173,6 +170,8 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     ['partner_id', '=', customerID],
     ['delivery_status', 'ilike', ''],
     '|',
+    '|',
+    ['partner_id', 'ilike', ''],
     ['name', 'ilike', ''],
     ['client_order_ref', 'ilike', ''],
     '|',
@@ -451,8 +450,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[4] = ['name', 'ilike', inputValue]
-        params[5] = ['client_order_ref', 'ilike', inputValue]
+        params[4] = ['partner_id', 'ilike', inputValue]
+        params[5] = ['name', 'ilike', inputValue]
+        params[6] = ['client_order_ref', 'ilike', inputValue]
         fetchAndDisplayOrders(0, params, true)
       }
     })
@@ -461,8 +461,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[4] = ['name', 'ilike', inputValue]
-      params[5] = ['client_order_ref', 'ilike', inputValue]
+        params[4] = ['partner_id', 'ilike', inputValue]
+        params[5] = ['name', 'ilike', inputValue]
+        params[6] = ['client_order_ref', 'ilike', inputValue]
       fetchAndDisplayOrders(0, params, true)
     }
   })
