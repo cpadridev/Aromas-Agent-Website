@@ -276,9 +276,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[5] = ['name', 'ilike', inputValue]
-        params[6] = ['vat', 'ilike', inputValue]
-        params[7] = ['zip', 'ilike', inputValue]
+        params[4] = ['name', 'ilike', inputValue]
+        params[5] = ['vat', 'ilike', inputValue]
+        params[6] = ['zip', 'ilike', inputValue]
         fetchAndDisplayCustomers(0, params, true)
       }
     })
@@ -287,9 +287,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[5] = ['name', 'ilike', inputValue]
-      params[6] = ['vat', 'ilike', inputValue]
-      params[7] = ['zip', 'ilike', inputValue]
+      params[4] = ['name', 'ilike', inputValue]
+      params[5] = ['vat', 'ilike', inputValue]
+      params[6] = ['zip', 'ilike', inputValue]
       fetchAndDisplayCustomers(0, params, true)
     }
   })
