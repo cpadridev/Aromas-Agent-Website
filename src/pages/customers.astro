@@ -43,8 +43,6 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
         <th>Address</th>
         <th>ZIP</th>
         <th>Email</th>
-        <th>Phone</th>
-        <th>Mobile</th>
         <th>Total Invoiced</th>
         <th>Users</th>
       </tr>
@@ -100,15 +98,12 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     'street',
     'zip',
     'email',
-    'phone',
-    'mobile',
     'total_invoiced',
     'portal_users'
   ]
 
   let params = [
     ['agent_ids', '=', partnerID],
-    ['is_customer', '=', true],
     ['parent_id', '=', false],
     '|', '|',
     ['name', 'ilike', ''],
