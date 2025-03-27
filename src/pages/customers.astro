@@ -141,7 +141,11 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
             customersCount.toString()
         }
 
-        const records = data.body.records
+        const records = data.body.records.map(record => ({
+            ...record,
+            total_invoiced: parseFloat(record.total_invoiced).toFixed(2) // Redondea a dos decimales y mantiene como string
+        }));
+
 
         const tbody = document.querySelector(
           '#customers tbody'
