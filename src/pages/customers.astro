@@ -16,7 +16,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       type='text'
       id='myInput'
       class='search-input'
-      placeholder='Search by Name, Parent Name, VAT or ZIP...'
+      placeholder='Search by Name, VAT or ZIP...'
     />
     <div class='pagination-buttons items-center'>
       <div class='dropdown'>
@@ -273,6 +273,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
       params[0] = ['is_customer', '=', false]
+      params[2] = []
       fetchAndDisplayCustomers(0, params, true)
     })
 
@@ -353,9 +354,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       if (event.key === 'Enter') {
         const inputValue = (this as HTMLInputElement).value.trim()
 
-        params[4] = ['name', 'ilike', inputValue]
-        params[5] = ['vat', 'ilike', inputValue]
-        params[6] = ['zip', 'ilike', inputValue]
+        params[5] = ['name', 'ilike', inputValue]
+        params[6] = ['vat', 'ilike', inputValue]
+        params[7] = ['zip', 'ilike', inputValue]
         fetchAndDisplayCustomers(0, params, true)
       }
     })
@@ -364,9 +365,9 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     if (event.target instanceof HTMLInputElement) {
       const inputValue = (this as HTMLInputElement).value.trim()
 
-      params[4] = ['name', 'ilike', inputValue]
-      params[5] = ['vat', 'ilike', inputValue]
-      params[6] = ['zip', 'ilike', inputValue]
+      params[5] = ['name', 'ilike', inputValue]
+      params[6] = ['vat', 'ilike', inputValue]
+      params[7] = ['zip', 'ilike', inputValue]
       fetchAndDisplayCustomers(0, params, true)
     }
   })
