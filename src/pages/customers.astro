@@ -273,7 +273,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
       ;(document.querySelector('#myInput') as HTMLInputElement).value = ''
       params = [...initialParams]
       params[0] = ['is_customer', '=', false]
-      params[2] = []
+      params[2] = ['is_customer', '=', false]
       fetchAndDisplayCustomers(0, params, true)
     })
 
