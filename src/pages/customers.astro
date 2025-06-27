@@ -58,6 +58,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
         <th>ZIP</th>
         <th>Email</th>
         <th>Total Invoiced</th>
+        <th>Creation Date</th>
         <th>Users</th>
       </tr>
     </thead>
@@ -154,6 +155,7 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
     'zip',
     'email',
     'total_invoiced',
+    'create_date',
     'portal_users'
   ]
 
@@ -221,7 +223,20 @@ import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-
             cell.style.border = '1px solid #ddd'
             cell.style.padding = '8px'
             cell.style.textAlign = 'center'
-            cell.innerHTML = text
+            
+            if (text != 'false') {
+              if (
+                text.includes('-') &&
+                text.includes(':') &&
+                text.includes(' ')
+              ) {
+                cell.innerHTML = text.split(' ')[0]
+              } else {
+                cell.innerHTML = text
+              }
+            } else {
+              cell.innerHTML = '-'
+            }
             
             if (i == 0) {
               cell.style.textDecoration = 'underline'

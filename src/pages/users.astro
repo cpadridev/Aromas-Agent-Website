@@ -14,6 +14,7 @@ import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-
       <tr>
         <th>Email</th>
         <th>Status</th>
+        <th>Creation Date</th>
         <th>Reset Password</th>
       </tr>
     </thead>
@@ -47,7 +48,7 @@ import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-
 
   const customerID = JSON.parse(localStorage.getItem('customer')).customerID
 
-  const fields = ['login', 'state']
+  const fields = ['login', 'state', 'create_date']
 
   let params = [['partner_id.parent_id', '=', customerID]]
 
@@ -79,7 +80,7 @@ import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-
           cell.style.border = '1px solid #ddd'
           cell.style.padding = '8px'
           cell.style.textAlign = 'center'
-
+          
           if (i == fields.length) {
             cell.style.textDecoration = 'underline'
             cell.style.cursor = 'pointer'
@@ -95,9 +96,20 @@ import MaterialSymbolsArrowBackRounded from '~icons/material-symbols/arrow-back-
           }
 
           const text = record[fields[i]].toString()
-          cell.innerHTML = text
 
-          
+          if (text != 'false') {
+            if (
+              text.includes('-') &&
+              text.includes(':') &&
+              text.includes(' ')
+            ) {
+              cell.innerHTML = text.split(' ')[0]
+            } else {
+              cell.innerHTML = text
+            }
+          } else {
+            cell.innerHTML = '-'
+          }
         }
       })
     })
